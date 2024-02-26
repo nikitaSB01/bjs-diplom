@@ -3,6 +3,12 @@ const ratesBoard = new RatesBoard();
 const moneyManager = new MoneyManager();
 const favoritesWidget = new FavoritesWidget();
 
+function repeatedFunctionClearFillTableUpdateUs(response) {
+  favoritesWidget.clearTable();
+  favoritesWidget.fillTable(response.data);
+  moneyManager.updateUsersList(response.data);
+}
+
 //                  Выход из личного кабинета
 logoutButton.action = function () {
   ApiConnector.logout((response) => {
@@ -17,6 +23,11 @@ logoutButton.action = function () {
 ApiConnector.current((response) => {
   if (response.success) {
     ProfileWidget.showProfile(response.data);
+  } else {
+    favoritesWidget.setMessage(
+      response,
+      "Что-то пошло не так с получением информации о пользователе)))"
+    );
   }
 });
 
@@ -27,6 +38,11 @@ function getStocks() {
     if (response.success) {
       ratesBoard.clearTable(/* response.data */);
       ratesBoard.fillTable(response.data);
+    } else {
+      favoritesWidget.setMessage(
+        response,
+        "Что-то пошло не так с получением текущих курсов валюты)))"
+      );
     }
   });
 }
@@ -79,18 +95,14 @@ moneyManager.sendMoneyCallback = function (data) {
 //  Запросите начальный список избранного:
 ApiConnector.getFavorites((response) => {
   if (response.success) {
-    favoritesWidget.clearTable(/* response.data */);
-    favoritesWidget.fillTable(response.data);
-    moneyManager.updateUsersList(response.data);
+    repeatedFunctionClearFillTableUpdateUs(response);
   }
 });
 //  Реализуйте добавления пользователя в список избранных:
 favoritesWidget.addUserCallback = function (data) {
   ApiConnector.addUserToFavorites(data, (response) => {
     if (response.success) {
-      favoritesWidget.clearTable(/* response.data */);
-      favoritesWidget.fillTable(response.data);
-      moneyManager.updateUsersList(response.data);
+      repeatedFunctionClearFillTableUpdateUs(response);
       favoritesWidget.setMessage(
         response,
         "Пользователь успешно добавлен в избранное"
@@ -107,9 +119,7 @@ favoritesWidget.addUserCallback = function (data) {
 favoritesWidget.removeUserCallback = function (data) {
   ApiConnector.removeUserFromFavorites(data, (response) => {
     if (response.success) {
-      favoritesWidget.clearTable(/* response.data */);
-      favoritesWidget.fillTable(response.data);
-      moneyManager.updateUsersList(response.data);
+      repeatedFunctionClearFillTableUpdateUs(response);
       favoritesWidget.setMessage(
         response,
         "Пользователь успешно удален из избранного"
